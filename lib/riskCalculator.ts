@@ -323,7 +323,7 @@ export function calculateRiskScore(
   }
 
   // Deduplicate and limit to 5
-  const uniqueRecs = [...new Set(recommendations)].slice(0, 5);
+  const uniqueRecs = Array.from(new Set(recommendations)).slice(0, 5);
 
   // If no recommendations, add defaults
   if (uniqueRecs.length < 3) {
