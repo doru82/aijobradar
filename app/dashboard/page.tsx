@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Logo from "@/components/Logo";
 
 interface RiskScore {
@@ -18,7 +18,7 @@ interface RiskScore {
   createdAt: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,7 +90,6 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      {/* Celebration overlay */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
           <div className="glass rounded-2xl p-8 text-center animate-scale-in">
@@ -101,7 +100,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Header */}
       <header className="border-b border-white/10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -129,9 +127,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Welcome Section */}
         <div className="mb-12">
           <h1 className="text-3xl font-bold mb-2">
             Welcome, {session.user?.name?.split(" ")[0]}! 👋
@@ -145,7 +141,6 @@ export default function DashboardPage() {
 
         {riskScore ? (
           <>
-            {/* Risk Score Card */}
             <div className={`rounded-2xl p-8 mb-8 border ${getRiskBgColor(riskScore.level)}`}>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
@@ -166,7 +161,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="glass rounded-xl p-6">
                 <div className="text-3xl font-bold text-blue-400 mb-2">
@@ -180,7 +174,7 @@ export default function DashboardPage() {
                   {riskScore.factors.industryModifier > 0 ? "+" : ""}{riskScore.factors.industryModifier}
                 </div>
                 <div className="text-gray-400">Industry Modifier</div>
-                <div className="text-xs text-gray-500 mt-2">Your industry's AI exposure</div>
+                <div className="text-xs text-gray-500 mt-2">Your industry&apos;s AI exposure</div>
               </div>
               <div className="glass rounded-xl p-6">
                 <div className="text-3xl font-bold text-emerald-400 mb-2">
@@ -191,7 +185,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Recommendations */}
             <div className="glass rounded-xl p-8 mb-8">
               <h2 className="text-xl font-bold mb-4">🎯 Recommended Skills to Learn</h2>
               <p className="text-gray-400 mb-6">
@@ -212,7 +205,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Last updated */}
             <p className="text-center text-gray-500 text-sm">
               Last calculated: {new Date(riskScore.createdAt).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -223,7 +215,6 @@ export default function DashboardPage() {
               })}
             </p>
 
-            {/* Recalculate button */}
             <div className="text-center mt-4">
               <button
                 onClick={() => router.push("/profile/setup")}
@@ -234,7 +225,6 @@ export default function DashboardPage() {
             </div>
           </>
         ) : (
-          /* Setup Prompt */
           <div className="glass rounded-xl p-8 text-center">
             <div className="text-5xl mb-4">🎯</div>
             <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
@@ -251,5 +241,17 @@ export default function DashboardPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </main>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
