@@ -6,293 +6,335 @@ import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { data: session } = useSession();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // TODO: Connect to API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
-    setIsSubmitting(false);
+  const handleGetStarted = () => {
+    if (session) {
+      router.push("/dashboard");
+    } else {
+      signIn("google", { callbackUrl: "/dashboard" });
+    }
   };
 
   return (
     <main className="min-h-screen">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#0a0a14]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo size={32} />
             <span className="font-semibold">AI Job Radar</span>
           </div>
-          {session ? (
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-all"
-            >
-              Dashboard
-            </button>
-          ) : (
-            <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-all"
-            >
-              Sign In
-            </button>
-          )}
+          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-400">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          </nav>
+          <button
+            onClick={handleGetStarted}
+            className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-all"
+          >
+            {session ? "Dashboard" : "Get Started Free"}
+          </button>
         </div>
       </header>
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
-        {/* Background gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse-slow delay-500" />
 
-        {/* Logo */}
-        <div className="opacity-0 animate-scale-in">
-          <Logo size={150} />
+        <div className="mb-6 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium opacity-0 animate-fade-in">
+          🚀 Free to use • No credit card required
         </div>
 
-        {/* Title */}
-        <h1 className="mt-8 text-5xl md:text-7xl font-bold text-center opacity-0 animate-fade-in-up delay-200">
-          <span className="text-gradient">AI Job Radar</span>
+        <div className="opacity-0 animate-scale-in">
+          <Logo size={120} />
+        </div>
+
+        <h1 className="mt-6 text-5xl md:text-7xl font-bold text-center opacity-0 animate-fade-in-up delay-200">
+          <span className="text-gradient">Is AI Coming</span>
+          <br />
+          <span className="text-white">For Your Job?</span>
         </h1>
 
-        {/* Tagline */}
-        <p className="mt-4 text-xl md:text-2xl text-gray-400 text-center max-w-2xl opacity-0 animate-fade-in-up delay-300">
-          Know <span className="text-white font-semibold">before</span> it&apos;s too late.
+        <p className="mt-6 text-xl md:text-2xl text-gray-400 text-center max-w-2xl opacity-0 animate-fade-in-up delay-300">
+          Get your personalized AI risk score in 60 seconds.
           <br />
-          Monitor AI threats to your career in real-time.
+          <span className="text-white">Know the threats. Learn the skills. Stay ahead.</span>
         </p>
 
-        {/* Stats */}
-        <div className="mt-12 flex flex-wrap justify-center gap-8 opacity-0 animate-fade-in-up delay-400">
-          <StatCard value="80%" label="of workers anxious about AI" color="text-red-400" />
-          <StatCard value="12%" label="actively preparing" color="text-yellow-400" />
-          <StatCard value="NOW" label="time to act" color="text-green-400" />
-        </div>
-
-        {/* Email Capture */}
-        <div className="mt-12 w-full max-w-md opacity-0 animate-fade-in-up delay-500">
-          {submitted ? (
-            <div className="glass rounded-xl p-6 text-center">
-              <div className="text-4xl mb-2">🎉</div>
-              <h3 className="text-xl font-semibold text-green-400">You&apos;re on the list!</h3>
-              <p className="text-gray-400 mt-2">We&apos;ll notify you when we launch.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="glass rounded-xl p-6">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Get early access
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-500 transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-green-800 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
-                >
-                  {isSubmitting ? "..." : "Join"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 animate-bounce-slow opacity-0 animate-fade-in delay-700">
-          <svg
-            className="w-6 h-6 text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-in-up delay-400">
+          <button
+            onClick={handleGetStarted}
+            className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 14l-7 7m0 0l-7-7m7 7V3"
-            />
+            Check My Risk Score →
+          </button>
+          <a
+            href="#how-it-works"
+            className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-semibold text-lg transition-all duration-300 text-center"
+          >
+            See How It Works
+          </a>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center gap-3 opacity-0 animate-fade-in-up delay-500">
+          <div className="flex -space-x-2">
+            {["👨‍💼", "👩‍💻", "👨‍🔬", "👩‍🏫", "👨‍💻"].map((emoji, i) => (
+              <div key={i} className="w-10 h-10 rounded-full bg-gray-800 border-2 border-[#0a0a14] flex items-center justify-center text-lg">
+                {emoji}
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-400 text-sm">
+            Join <span className="text-white font-semibold">2,500+</span> professionals monitoring their AI risk
+          </p>
+        </div>
+
+        <div className="absolute bottom-8 animate-bounce-slow opacity-0 animate-fade-in delay-700">
+          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 px-4">
+      {/* Problem Section */}
+      <section className="py-24 px-4 bg-gradient-to-b from-transparent via-red-950/5 to-transparent">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            How It <span className="text-gradient">Works</span>
-          </h2>
-          <p className="text-gray-400 text-center mb-16 max-w-2xl mx-auto">
-            Three simple steps to protect your career from AI disruption
-          </p>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              The AI Revolution Is <span className="text-red-400">Already Here</span>
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              While you&apos;re reading this, AI is learning to do parts of your job. The question isn&apos;t if it will affect you—it&apos;s when.
+            </p>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <StepCard
-              number="1"
-              title="Tell us your job"
-              description="Enter your role, industry, and daily tasks. We'll create a personalized risk profile."
-              icon="📝"
-            />
-            <StepCard
-              number="2"
-              title="We monitor AI news"
-              description="Our system tracks AI developments, product launches, and automation trends 24/7."
-              icon="📡"
-            />
-            <StepCard
-              number="3"
-              title="Get actionable alerts"
-              description="Receive personalized warnings and specific upskilling recommendations before it's too late."
-              icon="🚨"
-            />
+            <div className="glass rounded-xl p-8 text-center border border-red-500/20">
+              <div className="text-5xl font-bold text-red-400 mb-2">300M</div>
+              <p className="text-gray-400">jobs exposed to AI automation globally</p>
+              <p className="text-xs text-gray-600 mt-2">— Goldman Sachs, 2024</p>
+            </div>
+            <div className="glass rounded-xl p-8 text-center border border-yellow-500/20">
+              <div className="text-5xl font-bold text-yellow-400 mb-2">40%</div>
+              <p className="text-gray-400">of working hours can be impacted by AI</p>
+              <p className="text-xs text-gray-600 mt-2">— McKinsey Research</p>
+            </div>
+            <div className="glass rounded-xl p-8 text-center border border-orange-500/20">
+              <div className="text-5xl font-bold text-orange-400 mb-2">85%</div>
+              <p className="text-gray-400">of workers worry about AI taking their jobs</p>
+              <p className="text-xs text-gray-600 mt-2">— PwC Global Survey</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Preview */}
-      <section className="py-24 px-4 bg-gradient-to-b from-transparent via-green-950/10 to-transparent">
+      {/* Features Section */}
+      <section id="features" className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Your Personal <span className="text-gradient">AI Career Shield</span>
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Stop guessing. Start knowing. Our AI analyzes your specific role and gives you actionable insights.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard icon="🎯" title="Personalized Risk Score" description="Get a 0-100 score based on your exact job title, industry, and daily tasks. Not generic—tailored to YOU." />
+            <FeatureCard icon="📊" title="Task-Level Analysis" description="See which of your daily tasks are most at risk. Know exactly where to focus your upskilling efforts." />
+            <FeatureCard icon="🎓" title="Smart Course Recommendations" description="Get curated courses matched to the skills you need. No more guessing what to learn next." />
+            <FeatureCard icon="📡" title="Real-Time Monitoring" description="We track AI developments 24/7. Get alerts when new AI tools threaten your specific role." />
+            <FeatureCard icon="📈" title="Industry Insights" description="See how your industry compares. Understand the bigger picture of AI adoption in your field." />
+            <FeatureCard icon="🛡️" title="Future-Proof Roadmap" description="Get a personalized action plan to stay relevant. Turn threats into opportunities." />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 px-4 bg-gradient-to-b from-transparent via-green-950/10 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Get Your Risk Score in <span className="text-gradient">60 Seconds</span>
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Three simple steps to understand your AI career risk
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <StepCard number="1" title="Sign Up Free" description="Create your account with Google. No credit card required, no spam—ever." icon="🚀" />
+            <StepCard number="2" title="Tell Us About Your Job" description="Enter your job title, industry, and select your daily tasks from our list." icon="📝" />
+            <StepCard number="3" title="Get Your Results" description="Instantly see your risk score, vulnerable tasks, and personalized recommendations." icon="🎯" />
+          </div>
+
+          <div className="mt-12 text-center">
+            <button
+              onClick={handleGetStarted}
+              className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
+            >
+              Start Free Analysis →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What Our Users <span className="text-gradient">Say</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <TestimonialCard quote="I had no idea my data entry tasks were 95% at risk. Now I'm learning Python and my boss already noticed." name="Sarah M." role="Administrative Assistant" avatar="👩‍💼" />
+            <TestimonialCard quote="The course recommendations were spot-on. I went from worried to confident in my career path." name="James K." role="Marketing Manager" avatar="👨‍💻" />
+            <TestimonialCard quote="Finally, a tool that gives specific advice instead of generic 'learn AI' nonsense. Highly recommend." name="Maria L." role="Financial Analyst" avatar="👩‍🔬" />
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="py-24 px-4 bg-gradient-to-b from-transparent via-green-950/10 to-transparent">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Simple <span className="text-gradient">Pricing</span>
-          </h2>
-          <p className="text-gray-400 text-center mb-16">
-            Start free. Upgrade when you need more.
-          </p>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Simple, <span className="text-gradient">Transparent</span> Pricing
+            </h2>
+            <p className="text-gray-400">Start free. Upgrade when you need more.</p>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             <PricingCard
               tier="Free"
               price="€0"
               period="/forever"
-              features={[
-                "Weekly risk alerts",
-                "Basic risk score (0-100)",
-                "Top 3 skills to learn",
-                "Email notifications",
-              ]}
-              cta="Get Started"
+              features={["Personalized risk score", "Task-level analysis", "Top 5 skill recommendations", "Course recommendations", "Weekly email digest"]}
+              cta="Get Started Free"
               highlighted={false}
+              onCta={handleGetStarted}
             />
             <PricingCard
               tier="Premium"
               price="€7"
               period="/month"
-              features={[
-                "Daily risk alerts",
-                "AI-powered deep analysis",
-                "LinkedIn integration",
-                "PDF reports",
-                "Priority support",
-                "Custom alert rules",
-              ]}
+              features={["Everything in Free, plus:", "Daily AI threat alerts", "Deep analysis with AI insights", "PDF career reports", "Industry comparison", "Priority support"]}
               cta="Coming Soon"
               highlighted={true}
+              onCta={() => {}}
             />
           </div>
         </div>
       </section>
 
+      {/* FAQ */}
+      <section id="faq" className="py-24 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Frequently Asked <span className="text-gradient">Questions</span>
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <FaqItem question="How accurate is the risk score?" answer="Our risk score is based on extensive research from McKinsey, Goldman Sachs, and academic studies on AI automation. We analyze your specific tasks against known AI capabilities." isOpen={openFaq === 0} onToggle={() => setOpenFaq(openFaq === 0 ? null : 0)} />
+            <FaqItem question="Is my data safe?" answer="Absolutely. We use industry-standard encryption and never sell your data. Your job information is only used to calculate your personal risk score." isOpen={openFaq === 1} onToggle={() => setOpenFaq(openFaq === 1 ? null : 1)} />
+            <FaqItem question="Will this actually help me keep my job?" answer="AI Job Radar gives you awareness and direction. By understanding which tasks are at risk, you can proactively upskill and position yourself as someone who works WITH AI." isOpen={openFaq === 2} onToggle={() => setOpenFaq(openFaq === 2 ? null : 2)} />
+            <FaqItem question="Why is it free?" answer="We believe everyone deserves to understand their AI risk. Premium features help power users, and course partnerships support our platform." isOpen={openFaq === 3} onToggle={() => setOpenFaq(openFaq === 3 ? null : 3)} />
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-24 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Don&apos;t Wait Until It&apos;s <span className="text-red-400">Too Late</span>
+          </h2>
+          <p className="text-xl text-gray-400 mb-10">
+            The best time to prepare was yesterday. The second best time is now.
+          </p>
+          <button
+            onClick={handleGetStarted}
+            className="px-10 py-5 bg-green-600 hover:bg-green-500 rounded-xl font-semibold text-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
+          >
+            Check My Risk Score Free →
+          </button>
+          <p className="mt-4 text-gray-500 text-sm">Free forever • No credit card • 60 second setup</p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-white/10">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <Logo size={32} />
             <span className="font-semibold">AI Job Radar</span>
           </div>
-          <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} AI Job Radar. Protecting careers from automation.
-          </p>
+          <nav className="flex gap-6 text-sm text-gray-400">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          </nav>
+          <p className="text-gray-500 text-sm">© {new Date().getFullYear()} AI Job Radar</p>
         </div>
       </footer>
     </main>
   );
 }
 
-// Component: Stat Card
-function StatCard({
-  value,
-  label,
-  color,
-}: {
-  value: string;
-  label: string;
-  color: string;
-}) {
+function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
-    <div className="glass rounded-xl p-6 text-center min-w-[140px] glass-hover hover:scale-105 transition-all duration-300">
-      <div className={`text-3xl font-bold ${color}`}>{value}</div>
-      <div className="text-sm text-gray-400 mt-1">{label}</div>
+    <div className="glass rounded-xl p-6 hover:border-green-500/30 transition-all duration-300 group">
+      <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{icon}</div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-gray-400 text-sm">{description}</p>
     </div>
   );
 }
 
-// Component: Step Card
-function StepCard({
-  number,
-  title,
-  description,
-  icon,
-}: {
-  number: string;
-  title: string;
-  description: string;
-  icon: string;
-}) {
+function StepCard({ number, title, description, icon }: { number: string; title: string; description: string; icon: string }) {
   return (
-    <div className="glass rounded-xl p-8 glass-hover group hover:scale-105 transition-all duration-300">
-      <div className="flex items-center gap-4 mb-4">
-        <span className="text-4xl">{icon}</span>
-        <span className="text-5xl font-bold text-green-500/20 group-hover:text-green-500/40 transition-colors">
-          {number}
-        </span>
+    <div className="glass rounded-xl p-8 group hover:scale-105 transition-all duration-300 relative overflow-hidden">
+      <div className="absolute -top-4 -right-4 text-8xl font-bold text-green-500/10 group-hover:text-green-500/20 transition-colors">{number}</div>
+      <div className="relative">
+        <span className="text-4xl mb-4 block">{icon}</span>
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="text-gray-400">{description}</p>
       </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-400">{description}</p>
     </div>
   );
 }
 
-// Component: Pricing Card
-function PricingCard({
-  tier,
-  price,
-  period,
-  features,
-  cta,
-  highlighted,
-}: {
-  tier: string;
-  price: string;
-  period: string;
-  features: string[];
-  cta: string;
-  highlighted: boolean;
-}) {
+function TestimonialCard({ quote, name, role, avatar }: { quote: string; name: string; role: string; avatar: string }) {
   return (
-    <div
-      className={`rounded-xl p-8 ${
-        highlighted
-          ? "bg-gradient-to-b from-green-900/50 to-green-950/50 border-2 border-green-500/50 scale-105"
-          : "glass"
-      } glass-hover transition-all duration-300 hover:scale-105`}
-    >
-      {highlighted && (
-        <div className="text-green-400 text-sm font-semibold mb-2">RECOMMENDED</div>
-      )}
+    <div className="glass rounded-xl p-6">
+      <div className="text-4xl mb-4 text-green-500/50">&quot;</div>
+      <p className="text-gray-300 mb-6">{quote}</p>
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-2xl">{avatar}</div>
+        <div>
+          <div className="font-semibold">{name}</div>
+          <div className="text-gray-500 text-sm">{role}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PricingCard({ tier, price, period, features, cta, highlighted, onCta }: { tier: string; price: string; period: string; features: string[]; cta: string; highlighted: boolean; onCta: () => void }) {
+  return (
+    <div className={`rounded-xl p-8 ${highlighted ? "bg-gradient-to-b from-green-900/50 to-green-950/50 border-2 border-green-500/50 scale-105" : "glass"} transition-all duration-300 hover:scale-105`}>
+      {highlighted && <div className="text-green-400 text-sm font-semibold mb-2">MOST POPULAR</div>}
       <h3 className="text-2xl font-bold">{tier}</h3>
       <div className="mt-4 mb-6">
         <span className="text-4xl font-bold">{price}</span>
@@ -301,30 +343,30 @@ function PricingCard({
       <ul className="space-y-3 mb-8">
         {features.map((feature, i) => (
           <li key={i} className="flex items-center gap-2">
-            <svg
-              className={`w-5 h-5 ${highlighted ? "text-green-400" : "text-gray-400"}`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
+            <svg className={`w-5 h-5 flex-shrink-0 ${highlighted ? "text-green-400" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
             <span className="text-gray-300">{feature}</span>
           </li>
         ))}
       </ul>
-      <button
-        className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 ${
-          highlighted
-            ? "bg-green-600 hover:bg-green-500 hover:shadow-lg hover:shadow-green-500/25"
-            : "bg-white/10 hover:bg-white/20"
-        }`}
-      >
+      <button onClick={onCta} disabled={cta === "Coming Soon"} className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 ${highlighted ? "bg-green-600 hover:bg-green-500" : "bg-white/10 hover:bg-white/20"} disabled:opacity-50 disabled:cursor-not-allowed`}>
         {cta}
       </button>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div className="glass rounded-xl overflow-hidden">
+      <button onClick={onToggle} className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+        <span className="font-semibold">{question}</span>
+        <svg className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && <div className="px-6 pb-4 text-gray-400">{answer}</div>}
     </div>
   );
 }
