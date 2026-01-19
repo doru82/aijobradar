@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "AI Job Radar | Know Before It's Too Late",
   description:
     "Monitor AI developments and get personalized alerts when your job is at risk. Stay ahead of automation with AI Job Radar.",
+  icons: {
+    icon: '/favicon.ico',
+  },
   verification: {
     other: {
       'impact-site-verification': '31655d38-a6bc-47e7-909c-8d1087b051ef',
