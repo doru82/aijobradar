@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       where: { email: session.user.email },
     });
 
-    if (!user || !user.jobTitle || !user.industry || !user.dailyTasks) {
+    if (!user || !user.jobTitle || !user.industry || !user.jobTasks) {
       return NextResponse.json(
         { error: "Please complete your profile first" },
         { status: 400 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const currentScore = calculateRiskScore(
       user.jobTitle,
       user.industry,
-      user.dailyTasks as string[],
+      user.jobTasks as string[],
       user.yearsInRole || 0
     );
 
