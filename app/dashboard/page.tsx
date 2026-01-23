@@ -7,7 +7,8 @@ import UpgradeButton from "@/app/components/UpgradeButton";
 import CareerCoachChat from "@/app/components/CareerCoachChat";
 import GeneratePDFReport from "@/components/GeneratePDFReport";
 import { calculateRiskFromProfile } from "@/lib/riskCalculator";
-import { Settings } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -74,6 +75,7 @@ if (!user.jobTitle) {
       )}
     </div>
   </div>
+  <div className="flex items-center gap-2">
   <Link
     href="/profile"
     className={`p-3 rounded-xl transition-all ${
@@ -84,6 +86,17 @@ if (!user.jobTitle) {
   >
     <Settings className="w-5 h-5" />
   </Link>
+  <button
+    onClick={() => signOut({ callbackUrl: "/" })}
+    className={`p-3 rounded-xl transition-all ${
+      isPremium
+        ? "bg-white border-2 border-red-200 hover:border-red-400 text-red-500"
+        : "bg-slate-800 border border-slate-700 hover:border-red-500 text-gray-300 hover:text-red-400"
+    }`}
+  >
+    <LogOut className="w-5 h-5" />
+  </button>
+</div>
 </div>
           
         </div>
