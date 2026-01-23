@@ -347,3 +347,62 @@ export function calculateRiskScore(
     topRiskyTasks,
   };
 }
+
+// Wrapper function for dashboard integration
+export interface UserProfile {
+  jobTitle: string | null;
+  industry: string | null;
+  skills: string[];
+  techUsage: string | null;
+  experienceYears: number | null;
+  educationLevel: string | null;
+  jobTasks: string | null;
+}
+
+export function calculateRiskFromProfile(profile: UserProfile): RiskCalculationResult {
+  // Extract tasks from jobTasks text
+  const detectedTasks: string[] = [];
+  
+  if (profile.jobTasks) {
+    const jobTasksLower = profile.jobTasks.toLowerCase();
+    
+    // Check each known task against the job description
+    for (const task of Object.keys(taskRiskScores)) {
+      if (jobTasksLower.includes(task.toLowerCase())) {
+        detectedTasks.push(task);
+      }
+    }
+  }
+  
+  // If no tasks detected, use generic ones based on industry
+  if (detectedTasks.length === 0) {
+    detectedTasks.push("Team communication", "Problem solving", "Project coordination");
+  }
+  
+  // Map industry names to match our keys
+  const industryMap: Record<string, string> = {
+    "Technology & Software": "Software Development",
+    "Finance & Banking": "Finance & Banking",
+    "Healthcare & Medical": "Healthcare",
+    "Education": "Education",
+    "Retail & E-commerce": "Retail",
+    "Manufacturing": "Manufacturing",
+    "Marketing & Advertising": "Marketing & Advertising",
+    "Legal": "Legal",
+    "Real Estate": "Real Estate",
+    "Transportation & Logistics": "Transportation & Logistics",
+    "Hospitality & Tourism": "Other",
+    "Media & Entertainment": "Media & Entertainment",
+    "Government & Public Sector": "Other",
+    "Consulting": "Consulting",
+  };
+  
+  const mappedIndustry = industryMap[profile.industry || ""] || "Other";
+  
+  return calculateRiskScore(
+    profile.jobTitle || "Professional",
+    mappedIndustry,
+    detectedTasks,
+    profile.experienceYears || 3
+  );
+}

@@ -1,109 +1,12 @@
-// This is your Prisma schema file
-// Learn more: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-// ============== ENUMS ==============
-
-enum SubscriptionTier {
-  FREE
-  PREMIUM
-}
-
-enum RiskLevel {
-  LOW      // 0-25: Safe for now
-  MEDIUM   // 26-50: Monitor closely
-  HIGH     // 51-75: Start preparing
-  CRITICAL // 76-100: Immediate action needed
-}
-
-enum AlertType {
-  NEWS     // General AI news affecting the job
-  THREAT   // Specific threat detected
-  UPDATE   // Risk score changed
-  REMINDER // Periodic reminder to check status
-}
-
-// ============== MODELS ==============
-
-model User {
-  id            String           @id @default(cuid())
-  email         String           @unique
-  name          String?
-  image         String?
-  emailVerified DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-
-  // Job Information
-  jobTitle      String?
-  company       String?
-  industry      String?
-  jobTasks      String[]         // Array of daily tasks
-  yearsInRole   Int?
-  location      String?
-
-  // Subscription
-  tier          SubscriptionTier @default(FREE)
-  stripeId      String?          @unique
-  subExpiresAt  DateTime?
-
-  // Preferences
-  alertFrequency String          @default("weekly") // daily, weekly, monthly
-  alertEmail    Boolean          @default(true)
-  alertPush     Boolean          @default(false)
-
-  // Relations
-  accounts      Account[]
-  sessions      Session[]
-  riskScores    RiskScore[]
-  alerts        Alert[]
-
-  @@index([email])
-  @@index([tier])
-}
-
-model RiskScore {
-  id          String    @id @default(cuid())
-  userId      String
-  score       Int       // 0-100
-  level       RiskLevel
-  factors     Json      // { automation: 70, aiTools: 50, industryTrend: 60 }
-  summary     String    // Brief explanation
-  skills      String[]  // Recommended skills to learn
-  createdAt   DateTime  @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model Alert {
-  id          String    @id @default(cuid())
-  userId      String
-  type        AlertType
-  title       String
-  message     String
-  link        String?   // Optional link to news article
-  read        Boolean   @default(false)
-  sentAt      DateTime  @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([sentAt])
-  @@index([read])
-}
-
-// ============== NEXTAUTH MODELS ==============
 
 model Account {
   id                String  @id @default(cuid())
@@ -122,7 +25,6 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
 }
 
 model Session {
@@ -130,10 +32,41 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Stripe fields
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+  isPremium              Boolean   @default(false)
+  
+  // Profile info
+  jobTitle        String?
+  industry        String?
+  jobTasks        String?
+  techUsage       String?
+  educationLevel  String?
+  experienceYears Int?
+  skills          String[]
+  location        String?
+  
+  // Settings
+  alertEmail Boolean @default(true)
+  alertPush  Boolean @default(false)
+  
+  accounts Account[]
+  sessions Session[]
 }
 
 model VerificationToken {
@@ -143,27 +76,3 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-
-// ============== FUTURE MODELS ==============
-
-// Uncomment when ready to implement
-
-// model NewsSource {
-//   id          String   @id @default(cuid())
-//   name        String
-//   url         String
-//   category    String   // tech, business, ai-specific
-//   isActive    Boolean  @default(true)
-//   lastScraped DateTime?
-// }
-
-// model AITrend {
-//   id          String   @id @default(cuid())
-//   title       String
-//   description String
-//   impact      String[] // Affected job categories
-//   severity    RiskLevel
-//   source      String
-//   publishedAt DateTime
-//   createdAt   DateTime @default(now())
-// }
