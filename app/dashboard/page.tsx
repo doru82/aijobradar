@@ -7,8 +7,8 @@ import UpgradeButton from "@/app/components/UpgradeButton";
 import CareerCoachChat from "@/app/components/CareerCoachChat";
 import GeneratePDFReport from "@/components/GeneratePDFReport";
 import { calculateRiskFromProfile } from "@/lib/riskCalculator";
-import { Settings, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Settings } from "lucide-react";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
