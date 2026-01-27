@@ -52,8 +52,9 @@ export default function RecommendedCourses({ courses, isPremium }: RecommendedCo
       <div className="space-y-3">
         {courses.map((course) => (
           
-            key={course.id}
+           <a key={course.id}
             href={course.affiliateUrl}
+
             target="_blank"
             rel="noopener noreferrer"
             className={`block p-4 rounded-xl transition-all ${
