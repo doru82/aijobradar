@@ -9,6 +9,8 @@ import GeneratePDFReport from "@/components/GeneratePDFReport";
 import { calculateRiskFromProfile } from "@/lib/riskCalculator";
 import { Settings } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
+import { getRecommendedCourses } from "@/lib/courses";
+import RecommendedCourses from "@/components/RecommendedCourses";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -152,6 +154,13 @@ if (!user.jobTitle) {
   </div>
 )}
 
+// Get recommended courses
+const recommendedCourses = getRecommendedCourses(
+  user.industry,
+  user.skills,
+  riskResult.score
+);
+
           </div>
 
           {/* What-If Simulation */}
@@ -236,6 +245,12 @@ if (!user.jobTitle) {
                   career advice, PDF reports, and weekly email alerts
                 </p>
               </div>
+
+              {/* Recommended Courses */}
+                <RecommendedCourses 
+                courses={recommendedCourses} 
+                isPremium={isPremium} 
+               />
 
               <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-8 rounded-2xl mb-8 max-w-md mx-auto border border-slate-600">
                 <h4 className="font-bold text-xl mb-6 text-white">
