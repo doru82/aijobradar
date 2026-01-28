@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileText, Download, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getRecommendedCourses } from "@/lib/courses";
 
 interface UserData {
   name: string | null;
@@ -203,6 +204,80 @@ export default function GeneratePDFReport({ user, riskScore, isPremium }: Genera
         });
       }
 
+      // Recommended Courses Section
+      const coursesY = (doc as any).lastAutoTable?.finalY + 20 || recsY + 60;
+      
+      // Check if we need a new page for courses
+      if (coursesY > 220) {
+        doc.addPage();
+        
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        doc.text("Recommended Courses", 20, 30);
+        doc.setDrawColor(229, 231, 235);
+        doc.line(20, 35, pageWidth - 20, 35);
+
+        const courses = getRecommendedCourses(user.industry, user.skills, riskScore);
+        autoTable(doc, {
+          startY: 40,
+          head: [["Course", "Level", "Why It Helps"]],
+          body: courses.map(course => [
+            course.title,
+            course.level.charAt(0).toUpperCase() + course.level.slice(1),
+            course.skills.slice(0, 2).join(", ")
+          ]),
+          theme: "striped",
+          headStyles: { fillColor: [16, 185, 129] },
+          styles: { fontSize: 9, cellPadding: 4 },
+          columnStyles: { 
+            0: { cellWidth: 80 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 65 }
+          },
+          margin: { left: 20, right: 20 }
+        });
+
+        // Course links note
+        const linksY = (doc as any).lastAutoTable.finalY + 10;
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        doc.text("Visit aijobradar.io/dashboard for direct links to these courses", 20, linksY);
+      } else {
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        doc.text("Recommended Courses", 20, coursesY);
+        doc.setDrawColor(229, 231, 235);
+        doc.line(20, coursesY + 5, pageWidth - 20, coursesY + 5);
+
+        const courses = getRecommendedCourses(user.industry, user.skills, riskScore);
+        autoTable(doc, {
+          startY: coursesY + 10,
+          head: [["Course", "Level", "Why It Helps"]],
+          body: courses.map(course => [
+            course.title,
+            course.level.charAt(0).toUpperCase() + course.level.slice(1),
+            course.skills.slice(0, 2).join(", ")
+          ]),
+          theme: "striped",
+          headStyles: { fillColor: [16, 185, 129] },
+          styles: { fontSize: 9, cellPadding: 4 },
+          columnStyles: { 
+            0: { cellWidth: 80 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 65 }
+          },
+          margin: { left: 20, right: 20 }
+        });
+
+        // Course links note
+        const linksY = (doc as any).lastAutoTable.finalY + 10;
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        doc.text("Visit aijobradar.io/dashboard for direct links to these courses", 20, linksY);
+      }
+
       // Footer
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
@@ -216,94 +291,3 @@ export default function GeneratePDFReport({ user, riskScore, isPremium }: Genera
           { align: "center" }
         );
       }
-
-      // Save
-      const fileName = `AIJobRadar_Report_${user.name?.replace(/\s+/g, "_") || "User"}_${new Date().toISOString().split("T")[0]}.pdf`;
-      doc.save(fileName);
-
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={generatePDF}
-      disabled={!isPremium || isGenerating}
-      className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-        isPremium
-          ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg"
-          : "bg-slate-700 text-slate-400 cursor-not-allowed"
-      }`}
-    >
-      {isGenerating ? (
-        <>
-          <Loader2 className="w-5 h-5 animate-spin" />
-          Generating...
-        </>
-      ) : (
-        <>
-          <FileText className="w-5 h-5" />
-          Download PDF Report
-        </>
-      )}
-    </button>
-  );
-}
-
-// Helper functions
-function getRiskExplanation(score: number, jobTitle: string): string {
-  if (score < 30) {
-    return `Great news! ${jobTitle} has low automation risk. Your role requires skills that AI currently struggles to replicate.`;
-  } else if (score < 60) {
-    return `${jobTitle} has moderate automation risk. Some tasks may be automated, but core responsibilities remain human-centric.`;
-  } else if (score < 80) {
-    return `${jobTitle} faces significant automation risk. Consider developing skills in areas less susceptible to AI replacement.`;
-  }
-  return `${jobTitle} is at high risk of automation. Immediate action recommended to future-proof your career.`;
-}
-
-function getSkillResistance(skill: string): string {
-  const highResistance = ["leadership", "negotiation", "creativity", "empathy", "strategic thinking", "public speaking", "management"];
-  const mediumResistance = ["project management", "communication", "problem solving", "design", "writing", "research"];
-  
-  const lowerSkill = skill.toLowerCase();
-  
-  if (highResistance.some(s => lowerSkill.includes(s))) return "High";
-  if (mediumResistance.some(s => lowerSkill.includes(s))) return "Medium";
-  return "Variable";
-}
-
-function getRecommendations(score: number, industry: string): string[] {
-  const base = [
-    "Stay updated with AI developments in your industry",
-    "Focus on developing uniquely human skills like creativity and emotional intelligence",
-    "Build a strong professional network for future opportunities"
-  ];
-
-  if (score >= 60) {
-    return [
-      "Consider upskilling in AI-resistant areas immediately",
-      "Explore adjacent roles that leverage your experience but have lower automation risk",
-      "Learn to work alongside AI tools to increase your value",
-      ...base
-    ];
-  }
-  
-  if (score >= 30) {
-    return [
-      "Identify which parts of your job are most automatable and diversify",
-      "Develop expertise in areas that complement AI rather than compete with it",
-      ...base
-    ];
-  }
-
-  return [
-    "Continue developing your current skill set",
-    "Consider mentoring others to solidify your expertise",
-    ...base
-  ];
-}

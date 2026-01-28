@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getRecommendedCourses } from "@/lib/courses";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -71,13 +72,26 @@ export async function sendWeeklyAlertEmail(data: WeeklyEmailData) {
             </ul>
           </div>
 
-          <!-- Skill Recommendation -->
-          <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-            <h3 style="color: #ffffff; font-size: 14px; margin: 0 0 8px 0;">
-              💡 Skill Recommendation
-            </h3>
-            <p style="color: #d1fae5; font-size: 14px; margin: 0; line-height: 1.5;">
-              ${skillRecommendation}
+          <!-- Recommended Courses -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="color: #f1f5f9; font-size: 16px; margin: 0 0 16px 0;">
+              📚 Recommended Courses
+            </h2>
+            ${getRecommendedCourses(industry, skills, riskScore).map(course => `
+              <a href="${course.affiliateUrl}" target="_blank" style="display: block; background-color: #0f172a; border-radius: 8px; padding: 16px; margin-bottom: 8px; text-decoration: none; border: 1px solid #334155;">
+                <div style="color: #f1f5f9; font-size: 14px; font-weight: 600; margin-bottom: 4px;">
+                  ${course.title}
+                </div>
+                <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">
+                  ${course.description.substring(0, 80)}...
+                </div>
+                <div style="display: inline-block; background-color: #10b981; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px;">
+                  ${course.level} • ⭐ ${course.rating}
+                </div>
+              </a>
+            `).join("")}
+            <p style="color: #64748b; font-size: 11px; margin: 8px 0 0 0; text-align: center;">
+              Affiliate links - we may earn a commission
             </p>
           </div>
 
