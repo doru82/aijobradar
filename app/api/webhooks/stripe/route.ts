@@ -4,7 +4,6 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
@@ -45,13 +44,18 @@ export async function POST(req: Request) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           );
+          
+          // Get period end - fallback to 30 days from now if not available
+          const periodEnd = subscription.current_period_end 
+            ? new Date(subscription.current_period_end * 1000)
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
           await prisma.user.update({
             where: { stripeCustomerId: session.customer as string },
             data: {
               stripeSubscriptionId: subscription.id,
               stripePriceId: subscription.items.data[0].price.id,
-              stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              stripeCurrentPeriodEnd: periodEnd,
               isPremium: true,
             },
           });
@@ -61,12 +65,22 @@ export async function POST(req: Request) {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
+        
+        // Get period end from subscription or from items
+        let periodEndTimestamp = subscription.current_period_end;
+        if (!periodEndTimestamp && subscription.items?.data?.[0]) {
+          periodEndTimestamp = (subscription.items.data[0] as any).current_period_end;
+        }
+        
+        const periodEnd = periodEndTimestamp 
+          ? new Date(periodEndTimestamp * 1000)
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
         await prisma.user.update({
           where: { stripeCustomerId: subscription.customer as string },
           data: {
             stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            stripeCurrentPeriodEnd: periodEnd,
             isPremium: subscription.status === "active",
           },
         });
@@ -75,7 +89,7 @@ export async function POST(req: Request) {
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-
+        
         await prisma.user.update({
           where: { stripeCustomerId: subscription.customer as string },
           data: {
