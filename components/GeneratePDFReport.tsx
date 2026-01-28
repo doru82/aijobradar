@@ -291,3 +291,94 @@ export default function GeneratePDFReport({ user, riskScore, isPremium }: Genera
           { align: "center" }
         );
       }
+      
+      // Save
+      const fileName = `AIJobRadar_Report_${user.name?.replace(/\s+/g, "_") || "User"}_${new Date().toISOString().split("T")[0]}.pdf`;
+      doc.save(fileName);
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={generatePDF}
+      disabled={!isPremium || isGenerating}
+      className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+        isPremium
+          ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg"
+          : "bg-slate-700 text-slate-400 cursor-not-allowed"
+      }`}
+    >
+      {isGenerating ? (
+        <>
+          <Loader2 className="w-5 h-5 animate-spin" />
+          Generating...
+        </>
+      ) : (
+        <>
+          <FileText className="w-5 h-5" />
+          Download PDF Report
+        </>
+      )}
+    </button>
+  );
+}
+
+// Helper functions
+function getRiskExplanation(score: number, jobTitle: string): string {
+  if (score < 30) {
+    return `Great news! ${jobTitle} has low automation risk. Your role requires skills that AI currently struggles to replicate.`;
+  } else if (score < 60) {
+    return `${jobTitle} has moderate automation risk. Some tasks may be automated, but core responsibilities remain human-centric.`;
+  } else if (score < 80) {
+    return `${jobTitle} faces significant automation risk. Consider developing skills in areas less susceptible to AI replacement.`;
+  }
+  return `${jobTitle} is at high risk of automation. Immediate action recommended to future-proof your career.`;
+}
+
+function getSkillResistance(skill: string): string {
+  const highResistance = ["leadership", "negotiation", "creativity", "empathy", "strategic thinking", "public speaking", "management"];
+  const mediumResistance = ["project management", "communication", "problem solving", "design", "writing", "research"];
+  
+  const lowerSkill = skill.toLowerCase();
+  
+  if (highResistance.some(s => lowerSkill.includes(s))) return "High";
+  if (mediumResistance.some(s => lowerSkill.includes(s))) return "Medium";
+  return "Variable";
+}
+
+function getRecommendations(score: number, industry: string): string[] {
+  const base = [
+    "Stay updated with AI developments in your industry",
+    "Focus on developing uniquely human skills like creativity and emotional intelligence",
+    "Build a strong professional network for future opportunities"
+  ];
+
+  if (score >= 60) {
+    return [
+      "Consider upskilling in AI-resistant areas immediately",
+      "Explore adjacent roles that leverage your experience but have lower automation risk",
+      "Learn to work alongside AI tools to increase your value",
+      ...base
+    ];
+  }
+  
+  if (score >= 30) {
+    return [
+      "Identify which parts of your job are most automatable and diversify",
+      "Develop expertise in areas that complement AI rather than compete with it",
+      ...base
+    ];
+  }
+
+  return [
+    "Continue developing your current skill set",
+    "Consider mentoring others to solidify your expertise",
+    ...base
+  ];
+}
