@@ -5,8 +5,46 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 
+// Simple risk calculation for landing page
+function calculateQuickRisk(jobTitle: string): { score: number; level: string } {
+  const title = jobTitle.toLowerCase();
+  
+  // High risk jobs (60-85%)
+  const highRisk = ["data entry", "cashier", "telemarketer", "bookkeeper", "receptionist", "clerk", "typist", "transcriptionist", "filing", "secretary", "admin assistant", "administrative"];
+  
+  // Medium-high risk (45-65%)
+  const mediumHighRisk = ["accountant", "analyst", "paralegal", "translator", "customer service", "support", "teller", "proofreader", "copywriter"];
+  
+  // Medium risk (30-50%)
+  const mediumRisk = ["marketing", "sales", "designer", "developer", "programmer", "engineer", "manager", "consultant", "writer", "editor"];
+  
+  // Low risk (15-35%)
+  const lowRisk = ["nurse", "doctor", "therapist", "teacher", "lawyer", "executive", "director", "ceo", "founder", "strategist", "creative director", "surgeon", "psychologist"];
+
+  let baseScore = 45; // Default medium
+
+  if (highRisk.some(job => title.includes(job))) {
+    baseScore = 65 + Math.floor(Math.random() * 20);
+  } else if (mediumHighRisk.some(job => title.includes(job))) {
+    baseScore = 50 + Math.floor(Math.random() * 15);
+  } else if (mediumRisk.some(job => title.includes(job))) {
+    baseScore = 35 + Math.floor(Math.random() * 15);
+  } else if (lowRisk.some(job => title.includes(job))) {
+    baseScore = 20 + Math.floor(Math.random() * 15);
+  } else {
+    baseScore = 40 + Math.floor(Math.random() * 20);
+  }
+
+  const level = baseScore < 30 ? "LOW" : baseScore < 60 ? "MEDIUM" : baseScore < 80 ? "HIGH" : "CRITICAL";
+  
+  return { score: baseScore, level };
+}
+
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [jobTitle, setJobTitle] = useState("");
+  const [quickResult, setQuickResult] = useState<{ score: number; level: string } | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -23,6 +61,28 @@ export default function Home() {
       router.push("/dashboard");
     } else {
       signIn("google", { callbackUrl: "/dashboard" });
+    }
+  };
+
+  const handleQuickCheck = () => {
+    if (!jobTitle.trim()) return;
+    
+    setIsCalculating(true);
+    // Simulate calculation delay for effect
+    setTimeout(() => {
+      const result = calculateQuickRisk(jobTitle);
+      setQuickResult(result);
+      setIsCalculating(false);
+    }, 800);
+  };
+
+  const getRiskColor = (level: string) => {
+    switch (level) {
+      case "LOW": return "text-green-400";
+      case "MEDIUM": return "text-yellow-400";
+      case "HIGH": return "text-orange-400";
+      case "CRITICAL": return "text-red-400";
+      default: return "text-gray-400";
     }
   };
 
@@ -73,29 +133,80 @@ export default function Home() {
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in-up delay-100">
-            Get your personalized AI risk score in 60 seconds. 
-            <span className="text-white"> Know the threats. Build the skills. Stay ahead.</span>
+            Get your personalized AI risk score in seconds. 
+            <span className="text-white"> No signup required.</span>
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-200">
-  <button
-    onClick={handleGetStarted}
-    className="group px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20"
-  >
-    Check My Risk Score
-    <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
-  </button>
+          {/* Quick Calculator */}
+          <div className="max-w-md mx-auto mb-10 animate-fade-in-up delay-200">
+            {!quickResult ? (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleQuickCheck()}
+                  placeholder="Enter your job title..."
+                  className="flex-1 px-5 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.15] transition-all"
+                />
+                <button
+                  onClick={handleQuickCheck}
+                  disabled={!jobTitle.trim() || isCalculating}
+                  className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20"
+                >
+                  {isCalculating ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Analyzing...
+                    </span>
+                  ) : (
+                    "Check Risk"
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white/10 border border-white/20 rounded-2xl p-8 text-center">
+                <p className="text-gray-400 text-sm mb-2">Risk score for <span className="text-white font-medium">{jobTitle}</span></p>
+                <div className={`text-6xl font-bold mb-2 ${getRiskColor(quickResult.level)}`}>
+                  {quickResult.score}%
+                </div>
+                <p className={`text-lg font-semibold mb-6 ${getRiskColor(quickResult.level)}`}>
+                  {quickResult.level} RISK
+                </p>
+                <p className="text-gray-400 text-sm mb-6">
+                  This is a basic estimate. Sign in for a detailed analysis based on your skills, industry, and daily tasks.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handleGetStarted}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl font-semibold transition-all"
+                  >
+                    Get Full Analysis Free →
+                  </button>
+                  <button
+                    onClick={() => {
+                      setQuickResult(null);
+                      setJobTitle("");
+                    }}
+                    className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-all"
+                  >
+                    Try Another
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
-  <a
-    href="#how-it-works"
-    className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl font-semibold text-lg transition-all duration-300"
-  >
-    See How It Works
-  </a>
-</div>
+          {!quickResult && (
+            <p className="text-gray-500 text-sm animate-fade-in-up delay-300">
+              Try: &quot;Data Analyst&quot;, &quot;Marketing Manager&quot;, &quot;Software Developer&quot;
+            </p>
+          )}
 
-
-          <div className="mt-16 flex flex-col items-center gap-4 animate-fade-in-up delay-300">
+          <div className="mt-12 flex flex-col items-center gap-4 animate-fade-in-up delay-300">
             <div className="flex -space-x-3">
               {["👨‍💼", "👩‍💻", "👨‍🔬", "👩‍🏫", "👨‍💻", "👩‍⚕️"].map((emoji, i) => (
                 <div key={i} className="w-11 h-11 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-[#0a0a0f] flex items-center justify-center text-lg shadow-lg">
@@ -402,7 +513,7 @@ export default function Home() {
                 onClick={handleGetStarted}
                 className="px-10 py-4 bg-white text-gray-900 hover:bg-gray-100 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
               >
-                Check My Risk Score Free →
+                Get Full Analysis Free →
               </button>
               <p className="mt-4 text-gray-500 text-sm">Free forever • No credit card • 60 second setup</p>
             </div>
