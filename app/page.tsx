@@ -5,37 +5,45 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 
-// Simple risk calculation for landing page
+// Simple risk calculation for landing page - DETERMINISTIC
 function calculateQuickRisk(jobTitle: string): { score: number; level: string } {
-  const title = jobTitle.toLowerCase();
+  const title = jobTitle.toLowerCase().trim();
   
-  // High risk jobs (60-85%)
+  // Generate consistent hash from job title
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = ((hash << 5) - hash) + title.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const variation = Math.abs(hash % 10); // 0-9 consistent variation
+  
+  // High risk jobs (65-80%)
   const highRisk = ["data entry", "cashier", "telemarketer", "bookkeeper", "receptionist", "clerk", "typist", "transcriptionist", "filing", "secretary", "admin assistant", "administrative"];
   
-  // Medium-high risk (45-65%)
+  // Medium-high risk (50-60%)
   const mediumHighRisk = ["accountant", "analyst", "paralegal", "translator", "customer service", "support", "teller", "proofreader", "copywriter"];
   
-  // Medium risk (30-50%)
+  // Medium risk (35-45%)
   const mediumRisk = ["marketing", "sales", "designer", "developer", "programmer", "engineer", "manager", "consultant", "writer", "editor"];
   
-  // Low risk (15-35%)
-  const lowRisk = ["nurse", "doctor", "therapist", "teacher", "lawyer", "executive", "director", "ceo", "founder", "strategist", "creative director", "surgeon", "psychologist"];
+  // Low risk (20-30%)
+  const lowRisk = ["nurse", "doctor", "therapist", "teacher", "lawyer", "executive", "director", "ceo", "founder", "strategist", "creative director", "surgeon", "psychologist", "plumber", "electrician"];
 
-  let baseScore = 45; // Default medium
+  let baseScore: number;
 
   if (highRisk.some(job => title.includes(job))) {
-    baseScore = 65 + Math.floor(Math.random() * 20);
+    baseScore = 65 + variation;
   } else if (mediumHighRisk.some(job => title.includes(job))) {
-    baseScore = 50 + Math.floor(Math.random() * 15);
+    baseScore = 50 + variation;
   } else if (mediumRisk.some(job => title.includes(job))) {
-    baseScore = 35 + Math.floor(Math.random() * 15);
+    baseScore = 35 + variation;
   } else if (lowRisk.some(job => title.includes(job))) {
-    baseScore = 20 + Math.floor(Math.random() * 15);
+    baseScore = 20 + variation;
   } else {
-    baseScore = 40 + Math.floor(Math.random() * 20);
+    baseScore = 40 + variation;
   }
 
-  const level = baseScore < 30 ? "LOW" : baseScore < 60 ? "MEDIUM" : baseScore < 80 ? "HIGH" : "CRITICAL";
+  const level = baseScore < 30 ? "LOW" : baseScore < 50 ? "MEDIUM" : baseScore < 70 ? "HIGH" : "CRITICAL";
   
   return { score: baseScore, level };
 }
