@@ -17,11 +17,11 @@ export default function ManageSubscriptionButton() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert("Could not open subscription portal");
+        alert("Error: " + JSON.stringify(data));
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Something went wrong");
+      alert("Something went wrong: " + error);
     } finally {
       setIsLoading(false);
     }
